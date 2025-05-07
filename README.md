@@ -16,6 +16,23 @@ A dotnet tool that converts .trx files (Microsoft Test Results) into a beautiful
 
 ![msedge_LIVm2Zptr1](https://github.com/user-attachments/assets/801f67ec-6c55-4ba3-be7d-9b47c8698e08)
 
+## Usage
+
+Execute the tool with the following command:
+
+```bash
+dotnet TrxToExtentReport [options]
+```
+
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `-v, --verbose` | Set output to verbose messages. |
+| `-o, --output` | The output file path for the generated report. |
+| `-t, --trx` | Path to the TRX file. |
+| `-d, --directory` | Path to a directory containing multiple TRX files. |
+| `-e, --environment` | Environment name printed in the report. |
 
 ## Icons
 <a href="https://www.flaticon.com/free-icons/report" title="report icons">Report icons created by Pixel perfect - Flaticon</a>
