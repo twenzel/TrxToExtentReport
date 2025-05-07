@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "TrxTool": {
+      "commandName": "Project",
+      "commandLineArgs": "--v --trx=../../../../tests/TrxToExtentReport.Tests/TrxReader/TestData/simple.trx --output=temp"
+    },
+
+    "TrxTool-IntegrationTests": {
+      "commandName": "Project",
+      "commandLineArgs": "--v --trx=../../../../tests/TrxToExtentReport.Tests/TrxReader/TestData/IntegrationTests.trx --output=temp"
+    }
+  }
+}

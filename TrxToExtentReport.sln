@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrxToExtentReport.Tests", "Tests\TrxToExtentReport.Tests\TrxToExtentReport.Tests.csproj", "{36E66DC9-D354-47E8-84F3-68B024FEC29C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrxToExtentReport", "src\TrxToExtentReport.csproj", "{683B99D3-EA6A-2895-A9B4-C74A7F417287}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{36E66DC9-D354-47E8-84F3-68B024FEC29C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36E66DC9-D354-47E8-84F3-68B024FEC29C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36E66DC9-D354-47E8-84F3-68B024FEC29C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36E66DC9-D354-47E8-84F3-68B024FEC29C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{683B99D3-EA6A-2895-A9B4-C74A7F417287}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{683B99D3-EA6A-2895-A9B4-C74A7F417287}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{683B99D3-EA6A-2895-A9B4-C74A7F417287}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{683B99D3-EA6A-2895-A9B4-C74A7F417287}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2981EFCE-A403-40BF-B06C-0F3792097CBC}
+	EndGlobalSection
+EndGlobal
