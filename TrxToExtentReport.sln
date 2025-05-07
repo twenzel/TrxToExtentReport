@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrxToExtentReport.Tests", "Tests\TrxToExtentReport.Tests\TrxToExtentReport.Tests.csproj", "{36E66DC9-D354-47E8-84F3-68B024FEC29C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrxToExtentReport.Tests", "tests\TrxToExtentReport.Tests\TrxToExtentReport.Tests.csproj", "{36E66DC9-D354-47E8-84F3-68B024FEC29C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrxToExtentReport", "src\TrxToExtentReport.csproj", "{683B99D3-EA6A-2895-A9B4-C74A7F417287}"
 EndProject
