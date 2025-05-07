@@ -28,4 +28,23 @@ internal class AppTests
 		File.Exists(_options.OutputFile).ShouldBeTrue();
 		File.Delete(_options.OutputFile);
 	}
+
+	[Test]
+	public async Task CreateReport_From_Multiple_Files()
+	{
+		var options = new Options
+		{
+			TrxDirectory = "../../../TrxReader/TestData",
+			OutputFile = "path/to/output/report2.html",
+			Verbose = true,
+			Environment = "QA"
+		};
+
+		var app = new App(options, new Logger<App>(new LoggerFactory()));
+
+		await Shouldly.Should.NotThrowAsync(async () => await app.Run(CancellationToken.None));
+
+		File.Exists(options.OutputFile).ShouldBeTrue();
+		File.Delete(options.OutputFile);
+	}
 }

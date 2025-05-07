@@ -19,21 +19,10 @@ internal class App
 
 	public async Task Run(CancellationToken cancellationToken)
 	{
-		// read the trx file
-		_logger.LogInformation("Reading TRX file: {TrxFilePath}", _options.TrxFilePath);
-		var trxFilePath = _options.TrxFilePath;
+		var testRun = await ReadTestRun(cancellationToken);
 
-		if (!Path.IsPathRooted(trxFilePath))
-			trxFilePath = Path.GetFullPath(trxFilePath);
-
-		if (!File.Exists(trxFilePath))
-		{
-			_logger.LogError("TRX file not found: {TrxFilePath}", trxFilePath);
+		if (testRun == null)
 			return;
-		}
-
-		var testRun = await TrxReader.TrxDeserializer.DeserializeFile(trxFilePath, cancellationToken)
-			?? throw new InvalidOperationException("Could not deserialize trx file.");
 
 		var outputFile = _options.OutputFile;
 
@@ -90,6 +79,57 @@ internal class App
 		_logger.LogInformation("Report generated: {OutputFile}", outputFile);
 	}
 
+	private async Task<TestRun?> ReadTestRun(CancellationToken cancellationToken)
+	{
+		if (!string.IsNullOrEmpty(_options.TrxFilePath))
+			return await ReadSingleTestRun(_options.TrxFilePath, cancellationToken);
+
+		return await ReadMultipleTestRuns(_options.TrxDirectory, cancellationToken);
+	}
+
+	private async Task<TestRun?> ReadMultipleTestRuns(string directory, CancellationToken cancellationToken)
+	{
+		_logger.LogInformation("Reading TRX files from {Directory}", directory);
+
+		if (!Path.IsPathRooted(directory))
+			directory = Path.GetFullPath(directory);
+
+		if (!Directory.Exists(directory))
+		{
+			_logger.LogError("Directory not found: {Directory}", directory);
+			return null;
+		}
+
+		var files = Directory.GetFiles(directory, "*.trx", SearchOption.TopDirectoryOnly);
+
+		if (files.Length == 0)
+		{
+			_logger.LogError("No TRX files found in directory: {Directory}", directory);
+			return null;
+		}
+
+		return await TrxReader.TrxDeserializer.DeserializeTestResultsFromMultipleFilePaths(files, cancellationToken)
+			?? throw new InvalidOperationException("Could not deserialize trx files.");
+	}
+
+	private async Task<TestRun?> ReadSingleTestRun(string trxFilePath, CancellationToken cancellationToken)
+	{
+		// read the trx file
+		_logger.LogInformation("Reading TRX file: {TrxFilePath}", trxFilePath);
+
+		if (!Path.IsPathRooted(trxFilePath))
+			trxFilePath = Path.GetFullPath(trxFilePath);
+
+		if (!File.Exists(trxFilePath))
+		{
+			_logger.LogError("TRX file not found: {TrxFilePath}", trxFilePath);
+			return null;
+		}
+
+		return await TrxReader.TrxDeserializer.DeserializeFile(trxFilePath, cancellationToken)
+			?? throw new InvalidOperationException("Could not deserialize trx file.");
+	}
+
 	private static void AddTestResults(TestRun testRun, ExtentReports extent)
 	{
 		if (testRun.Results == null)
@@ -108,6 +148,12 @@ internal class App
 				continue;
 
 			var testName = testGroup.Key.TestName;
+
+			if (string.IsNullOrEmpty(testName))
+			{
+
+			}
+
 			var description = GetTestDescription(testName);
 			var extentTest = extent.CreateTest(testName, description);
 
@@ -129,6 +175,10 @@ internal class App
 		foreach (var test in testGroup)
 		{
 			var testParameter = ExtractTestParameter(test.TestName);
+
+			if (string.IsNullOrEmpty(testParameter))
+				testParameter = "<EmptyString>";
+
 			var node = extentTest.CreateNode(testParameter);
 
 			AddSingleTestResult(node, test);
