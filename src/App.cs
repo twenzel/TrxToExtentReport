@@ -1,4 +1,5 @@
 using AventStack.ExtentReports;
+using AventStack.ExtentReports.MarkupUtils;
 using AventStack.ExtentReports.Reporter;
 using Microsoft.Extensions.Logging;
 using TrxToExtentReport.TrxReader.Models;
@@ -9,9 +10,6 @@ internal class App
 {
 	private readonly Options _options;
 	private readonly ILogger<App> _logger;
-
-	private readonly static System.Reflection.FieldInfo s_stackTrace = typeof(Exception).GetPrivateField("_stackTraceString") ??
-		throw new InvalidOperationException("Could not find the private field _stackTraceString in Exception class.");
 
 	public App(Options options, ILogger<App> logger)
 	{
@@ -102,85 +100,116 @@ internal class App
 		if (hostNames != null && hostNames.Count > 0)
 			extent.AddSystemInfo("Host Name", string.Join(", ", hostNames));
 
-
-
-		foreach (var test in testRun.Results.UnitTestResults)
+		// group the tests by their unique/full qualified method name
+		// because same tests with different parameters should be grouped 
+		foreach (var testGroup in testRun.Results.UnitTestResults.GroupBy(t => GetUniqueMethodName(t, testRun)))
 		{
-			var unitTest = testRun.TestDefinitions?.UnitTests.FirstOrDefault(x => x.Id == test.TestId);
+			if (testGroup.Key == null)
+				continue;
 
-			var testName = GetTestName(test.TestName);
+			var testName = testGroup.Key.TestName;
 			var description = GetTestDescription(testName);
-			var testStatus = test.Outcome;
 			var extentTest = extent.CreateTest(testName, description);
 
+			if (!string.IsNullOrEmpty(testGroup.Key.FullqualifiedMethodName))
+				extentTest.Info($"Method name: {testGroup.Key.FullqualifiedMethodName}");
+
+			if (testGroup.Count() == 1)
+				AddSingleTestResult(extentTest, testGroup.First());
+			else
+				AddMultipleTestResults(extentTest, testGroup);
+
+			if (!string.IsNullOrEmpty(testGroup.Key.Namespace))
+				extentTest.AssignCategory(testGroup.Key.Namespace);
+		}
+	}
+
+	private static void AddMultipleTestResults(ExtentTest extentTest, IGrouping<TestInfo?, UnitTestResult> testGroup)
+	{
+		foreach (var test in testGroup)
+		{
 			var testParameter = ExtractTestParameter(test.TestName);
-			if (!string.IsNullOrEmpty(unitTest?.TestMethod.ClassName))
-				extentTest.Info($"Class name: {unitTest?.TestMethod.ClassName}");
-			if (!string.IsNullOrEmpty(testParameter))
-				extentTest.Info($"Parameter: {testParameter}");
+			var node = extentTest.CreateNode(testParameter);
 
-			switch (testStatus)
+			AddSingleTestResult(node, test);
+		}
+	}
+
+	private static void AddSingleTestResult(ExtentTest extentTest, UnitTestResult test)
+	{
+		var testParameter = ExtractTestParameter(test.TestName);
+		if (!string.IsNullOrEmpty(testParameter))
+			extentTest.Info($"Parameter: {testParameter}");
+
+		var testStatus = test.Outcome;
+		switch (testStatus)
+		{
+			case "Passed":
+				extentTest.Pass("Test passed");
+				break;
+			case "Failed":
+				extentTest.Fail("Test failed");
+				break;
+			default:
+				extentTest.Warning($"Test status unknown ({testStatus})");
+				break;
+		}
+
+		extentTest.Model.StartTime = test.StartTime.LocalDateTime;
+		extentTest.Model.EndTime = test.EndTime.LocalDateTime;
+
+		if (test.Output != null)
+		{
+			if (!string.IsNullOrEmpty(test.Output.StdOut))
+				extentTest.Info($"StdOut: {test.Output.StdOut.ReplaceLineEndings("<br/>")}");
+
+			if (!string.IsNullOrEmpty(test.Output.StdErr))
+				extentTest.Info($"StdErr: {test.Output.StdErr}");
+
+			if (test.Output.ErrorInfo != null)
 			{
-				case "Passed":
-					extentTest.Pass("Test passed");
-					break;
-				case "Failed":
-					extentTest.Fail("Test failed");
-					break;
-				default:
-					extentTest.Warning($"Test status unknown ({testStatus})");
-					break;
-			}
+				if (!string.IsNullOrEmpty(test.Output.ErrorInfo.Message))
+					extentTest.Fail(test.Output.ErrorInfo.Message);
 
-			extentTest.Test.StartTime = test.StartTime.LocalDateTime;
-			extentTest.Test.EndTime = test.EndTime.LocalDateTime;
-
-			var category = GetTestNamespace(unitTest);
-
-			if (category != null)
-				extentTest.AssignCategory(category);
-
-			if (test.Output != null)
-			{
-				if (!string.IsNullOrEmpty(test.Output.StdOut))
-					extentTest.Info($"StdOut: {test.Output.StdOut.ReplaceLineEndings("<br/>")}");
-
-				if (!string.IsNullOrEmpty(test.Output.StdErr))
-					extentTest.Info($"StdErr: {test.Output.StdErr}");
-
-				if (test.Output.ErrorInfo != null)
-					extentTest.Fail(CreateException(test.Output.ErrorInfo));
+				if (!string.IsNullOrEmpty(test.Output.ErrorInfo.StackTrace))
+					extentTest.Fail(MarkupHelper.CreateCodeBlock(test.Output.ErrorInfo.StackTrace));
 			}
 		}
 	}
 
-	private static Exception CreateException(ErrorInfo errorInfo)
+	private static TestInfo? GetUniqueMethodName(UnitTestResult test, TestRun testRun)
 	{
-		var exception = new Exception(errorInfo.Message);
+		var unitTest = testRun.TestDefinitions?.UnitTests.FirstOrDefault(x => x.Id == test.TestId);
 
-		if (errorInfo.StackTrace != null)
-			s_stackTrace.SetValue(exception, errorInfo.StackTrace);
-
-		return exception;
-	}
-
-	private static string? GetTestNamespace(UnitTest? unitTest)
-	{
 		if (unitTest != null)
 		{
-			var assemblyName = Path.GetFileNameWithoutExtension(unitTest.TestMethod.CodeBase);
 			var className = unitTest.TestMethod.ClassName;
+			var methodName = RemoveParameter(unitTest.TestMethod.Name);
+			var testNamespace = string.Empty;
+
+			var assemblyName = Path.GetFileNameWithoutExtension(unitTest.TestMethod.CodeBase);
 
 			if (className.StartsWith(assemblyName))
 			{
-				className = className.Substring(assemblyName.Length + 1);
-				var index = className.IndexOf('.');
+				testNamespace = className.Substring(assemblyName.Length + 1);
+				var index = testNamespace.IndexOf('.');
 				if (index > 0)
-					return className.Substring(0, index);
+					testNamespace = testNamespace.Substring(0, index);
 			}
+
+			return new TestInfo { FullqualifiedMethodName = $"{className}.{methodName}", TestName = RemoveParameter(test.TestName), Namespace = testNamespace };
 		}
 
 		return null;
+	}
+
+	private static string RemoveParameter(string name)
+	{
+		var index = name.IndexOf('(');
+		if (index > 0)
+			name = name.Substring(0, index);
+
+		return name;
 	}
 
 	private static string? GetTestDescription(string testName)
@@ -189,16 +218,6 @@ internal class App
 			return testName.Replace('_', ' ');
 
 		return null;
-	}
-
-	private static string GetTestName(string testName)
-	{
-		var index = testName.IndexOf('(');
-
-		if (index > 0)
-			return testName.Substring(0, index);
-
-		return testName;
 	}
 
 	private static string? ExtractTestParameter(string testName)
@@ -217,5 +236,13 @@ internal class App
 		}
 
 		return null;
+	}
+
+	private record TestInfo
+	{
+		public string TestName { get; set; }
+		public string FullqualifiedMethodName { get; set; }
+
+		public string? Namespace { get; set; }
 	}
 }
