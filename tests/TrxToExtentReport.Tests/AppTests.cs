@@ -13,7 +13,8 @@ internal class AppTests
 		{
 			TrxFilePath = "../../../TrxReader/TestData/simple.trx",
 			OutputFile = "path/to/output/report.html",
-			Verbose = true
+			Verbose = true,
+			Environment = "QA"
 		};
 
 		_app = new App(_options, new Logger<App>(new LoggerFactory()));
@@ -24,7 +25,7 @@ internal class AppTests
 	{
 		await Shouldly.Should.NotThrowAsync(async () => await _app.Run(CancellationToken.None));
 
-		File.Exists(_options.TrxFilePath).ShouldBeTrue();
-		File.Delete(_options.TrxFilePath);
+		File.Exists(_options.OutputFile).ShouldBeTrue();
+		File.Delete(_options.OutputFile);
 	}
 }
