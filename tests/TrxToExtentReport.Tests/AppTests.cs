@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Shouldly;
 
 namespace TrxToExtentReport.Tests;
 internal class AppTests
@@ -10,7 +11,7 @@ internal class AppTests
 	{
 		_options = new Options
 		{
-			TrxFilePath = "path/to/trx/file.trx",
+			TrxFilePath = "../../../TrxReader/TestData/simple.trx",
 			OutputFile = "path/to/output/report.html",
 			Verbose = true
 		};
@@ -21,6 +22,9 @@ internal class AppTests
 	[Test]
 	public async Task CreateReport()
 	{
-		await _app.Run(CancellationToken.None);
+		await Shouldly.Should.NotThrowAsync(async () => await _app.Run(CancellationToken.None));
+
+		File.Exists(_options.TrxFilePath).ShouldBeTrue();
+		File.Delete(_options.TrxFilePath);
 	}
 }

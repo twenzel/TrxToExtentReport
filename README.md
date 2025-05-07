@@ -2,7 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/TrxToExtentReport.svg)](https://nuget.org/packages/TrxToExtentReport/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Build Status](https://github.com/twenzel/TrxToExtentReport/workflows/CI/badge.svg?branch=main)](https://github.com/twenzel/TrxToExtentReport/actions)
+[![CI](https://github.com/twenzel/TrxToExtentReport/actions/workflows/build.yml/badge.svg)](https://github.com/twenzel/TrxToExtentReport/actions/workflows/build.yml)
 
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=twenzel_TrxToExtentReport&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=twenzel_TrxToExtentReport)
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=twenzel_TrxToExtentReport&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=twenzel_TrxToExtentReport)
