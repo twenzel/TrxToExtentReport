@@ -14,5 +14,8 @@
 
 A dotnet tool that converts .trx files (Microsoft Test Results) into a beautiful readable Html file (ExtentReport)
 
+![msedge_LIVm2Zptr1](https://github.com/user-attachments/assets/801f67ec-6c55-4ba3-be7d-9b47c8698e08)
+
+
 ## Icons
 <a href="https://www.flaticon.com/free-icons/report" title="report icons">Report icons created by Pixel perfect - Flaticon</a>
